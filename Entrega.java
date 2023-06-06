@@ -66,7 +66,7 @@ class Entrega {
         boolean condition = false;
         for(int y : universe){
 
-          if((p.test(x))&&(!q.test(x, y))){
+          if(!(p.test(x) && q.test(x, y))){
             continue;
           }
           if(condition){
@@ -85,39 +85,86 @@ class Entrega {
      * És cert que ∃!x ∀y. P(y) -> Q(x,y) ?
      */
     static boolean exercici2(int[] universe, Predicate<Integer> p, BiPredicate<Integer, Integer> q) {
-      boolean condition = false;
+
+      boolean existeUnico = false;
 
       for(int x : universe){
-        for(int y : universe){
-          if((p.test(y))&&(!q.test(x, y))){
-            return false;
+
+        boolean cumplePredicado = true;
+
+        for(int y : universe) {
+          if(p.test(y) && !q.test(x, y)){
+            cumplePredicado = false;
+            break;
           }
         }
 
-        if(condition){
-          return false;
-        }
-
-        if(!condition){
-          condition = true;
+        if(cumplePredicado){
+          if(existeUnico){
+            return false;
+          }else{
+            existeUnico = true;
+          }
         }
 
       }
-      return condition;
+      return existeUnico;
     }
 
     /*
      * És cert que ∃x,y ∀z. P(x,z) ⊕ Q(y,z) ?
      */
     static boolean exercici3(int[] universe, BiPredicate<Integer, Integer> p, BiPredicate<Integer, Integer> q) {
-      return false; // TO DO
+      boolean existeX = false, existeY = false, todoZ = false;
+      for(int x : universe){
+        for(int y : universe){
+          for(int z : universe){
+            todoZ = true;
+            if(p.test(x, z) == q.test(y, z)/*!((!(p.test(x, z))&&(q.test(y, z))||((p.test(x, z))&&!(q.test(y, z)))))*/){
+              todoZ = false;
+              break;
+            }
+          }
+          if(todoZ){
+            existeY = true;
+            break;
+          }
+        }
+        if(existeY){
+          existeX = true;
+          break;
+        }
+      }
+      if(!todoZ){
+        return false;
+      }else{
+        return existeX;
+      }
     }
 
     /*
      * És cert que (∀x. P(x)) -> (∀x. Q(x)) ?
      */
     static boolean exercici4(int[] universe, Predicate<Integer> p, Predicate<Integer> q) {
-      return false; // TO DO
+      boolean todoP = true, todoQ = true;
+      for(int x : universe){
+        if(!p.test(x)){
+          todoP = false;
+          break;
+        }
+      }
+
+      if(!todoP){
+        return true;
+      }else{
+        for(int x : universe){
+          if(!q.test(x)){
+            todoQ = false;
+            break;
+          }
+        }
+        return todoQ;
+      }
     }
 
     /*
@@ -219,14 +266,97 @@ class Entrega {
    * avaluar com f.apply(x) (on x és d'a i el resultat f.apply(x) és de b).
    */
   static class Tema2 {
+    //Funciones auxiliares
+    /**
+     * Comprueba que un elemento pertenezca a un conjunto
+     * @param a Elemento a comprobar
+     * @param rel Conjunto sobre el que se va a comprobar
+     * @return Si el elemento está contenido en el conjunto o no
+     */
+    private static boolean contains(int[] a, int[][] rel){
+      boolean cont = false;
+      for(int[] y : rel){
+        if(Arrays.equals(y, a)){
+          cont = true;
+          break;
+        }
+      }
+      return cont;
+    }
+
+    /**
+     * Comprueba que una relación sea reflexiva sobre un conjunto dado
+     * @param a Conjunto original
+     * @param rel Conjunto relación
+     * @return Si la relación es reflexiva o no
+     */
+    private static boolean reflexiva(int[] a, int[][] rel){
+      boolean reflex = true;
+      int[] aux = {0, 0};
+      for(int x : a){
+        aux[0] = x;
+        aux[1] = x;
+        if(!contains(aux, rel)){
+          reflex = false;
+          break;
+        }
+      }
+      return reflex;
+    }
+
+    /**
+     * Comprueba que una relación sea simétrica
+     * @param rel Conjunto relacion
+     * @return Si la relación es simétrica o no
+     */
+    private static boolean simetrica(int[][] rel){
+      boolean sim = true;
+      int[] aux = {0, 0};
+      for(int[] x : rel){
+        aux[0] = x[1];
+        aux[1] = x[0];
+        if(!contains(aux, rel)){
+          sim = false;
+          break;
+        }
+      }
+      return sim;
+    }
+
+    /**
+     * Comprueba que una relación sea transitiva
+     * @param rel Conjunto relación
+     * @return Si la relación es transitiva o no
+     */
+    private static boolean transitiva(int[][] rel){
+      boolean trans = true;
+      int[] aux = {0, 0};
+
+      for(int[] x : rel){
+        for(int[] y : rel){
+          if(x[1]==y[0]){
+            aux[0] = x[0];
+            aux[1] = y[1];
+            if(!contains(aux, rel)){
+              trans = false;
+              break;
+            }
+          }
+        }
+      }
+      return trans;
+    }
+    //Fin funciones auxiliares
+
     /*
      * Comprovau si la relació `rel` definida sobre `a` és d'equivalència.
      *
      * Podeu soposar que `a` està ordenat de menor a major.
      */
     static boolean exercici1(int[] a, int[][] rel) {
-      return false; // TO DO
+      return reflexiva(a, rel) && simetrica(rel) && transitiva(rel);
     }
+
 
     /*
      * Comprovau si la relació `rel` definida sobre `a` és d'equivalència. Si ho és, retornau el
@@ -235,6 +365,11 @@ class Entrega {
      * Podeu soposar que `a` està ordenat de menor a major.
      */
     static int exercici2(int[] a, int[][] rel) {
+      if(reflexiva(a, rel) && simetrica(rel) && transitiva(rel)){
+
+      }else{
+
+      }
       return 0; // TO DO
     }
 
@@ -268,7 +403,7 @@ class Entrega {
 
       assertThat(
           exercici1(
-              new int[] { 0, 1, 2, 3 },
+              new int[] { 0, 1, 2, 3},
               new int[][] { {0, 0}, {1, 1}, {2, 2}, {3, 3}, {1, 3}, {3, 1} }
           )
       );
@@ -672,15 +807,11 @@ class Entrega {
    * Podeu aprofitar el mètode `assertThat` per comprovar fàcilment que un valor sigui `true`.
    */
   public static void main(String[] args) {
-    Tema1.tests();
-<<<<<<< HEAD
-    //Tema2.tests();
-    //Tema3.tests();
-=======
+    //Tema1.tests();
     Tema2.tests();
-    Tema3.tests();
-    Tema4.tests();
->>>>>>> 4c7f3aab65e0cd0173630a63b3407e37953f9a45
+    //Tema3.tests();
+    //Tema4.tests();
+
   }
 
   /// Si b és cert, no fa res. Si b és fals, llança una excepció (AssertionError).
@@ -690,5 +821,3 @@ class Entrega {
     System.out.println(b);
   }
 }
-
-// vim: set textwidth=100 shiftwidth=2 expandtab :
