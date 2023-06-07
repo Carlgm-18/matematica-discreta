@@ -364,13 +364,39 @@ class Entrega {
      *
      * Podeu soposar que `a` està ordenat de menor a major.
      */
+
+
     static int exercici2(int[] a, int[][] rel) {
-      if(reflexiva(a, rel) && simetrica(rel) && transitiva(rel)){
-
-      }else{
-
+      if(!reflexiva(a, rel) || !simetrica(rel) || !transitiva(rel)){
+        return -1;
       }
-      return 0; // TO DO
+
+      Set<Integer>[] claseEquivalencia = new HashSet[a.length]; //Inicializamos un array de Sets
+
+      for (int i = 0; i<claseEquivalencia.length; i++) {
+        claseEquivalencia[i] = new HashSet<>();
+        claseEquivalencia[i].add(a[i]);
+      }
+      //Vamos generando las clases de equivalencia para cada elemento de a
+      for (int i = 0; i < a.length; i++) {
+        for (int[] elem : rel) {
+          if(elem[0] == i){
+            claseEquivalencia[i].add(elem[1]);
+          }
+
+          if(elem[1] == 1){
+            claseEquivalencia[i].add(elem[0]);
+          }
+        }
+      }
+
+      Set<Set<Integer>> setEquiv = new HashSet<>(); //Set para eliminar las clases duplicadas
+      for(Set<Integer> e: claseEquivalencia){
+        setEquiv.add(e);
+      }
+
+      return setEquiv.size();
+
     }
 
     /*
@@ -378,8 +404,38 @@ class Entrega {
      *
      * Podeu soposar que `a` i `b` estan ordenats de menor a major.
      */
+
+    private static boolean contains(int a, int[] set){
+      boolean found = false;
+      for (int i : set) {
+        if(a == i){
+          found = true;
+          break;
+        }
+      }
+      return found;
+    }
+    
+
     static boolean exercici3(int[] a, int[] b, int[][] rel) {
-      return false; // TO DO
+
+      for (int[] ints : rel) {
+        if(!contains(ints[0], a) || !contains(ints[1], b)){
+          return false;
+        }
+      }
+      for (int i : a) {
+        int cont = 0;
+        for (int[] ints : rel) {
+          if(i == ints[0]){
+            cont++;
+          }
+        }
+        if(cont != 1){
+          return false;
+        }
+      }
+      return true; // TO DO
     }
 
     /*
