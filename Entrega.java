@@ -1,4 +1,3 @@
-import java.lang.AssertionError;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -6,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
-import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 
 
@@ -447,7 +445,51 @@ class Entrega {
      * Podeu suposar que `dom` i `codom` estàn ordenats de menor a major.
      */
     static int exercici4(int[] dom, int[] codom, Function<Integer, Integer> f) {
-      return -1; // TO DO
+      boolean inyectiva = true, exhaustiva = true;
+      int[] imagen1 = new int[dom.length];
+      Set<Integer> imagen2 = new HashSet<>();
+
+      for (int i = 0; i < dom.length; i++) {//Generamos el conjunto de las imágenes
+        imagen1[i] = f.apply(dom[i]);
+        imagen2.add(imagen1[i]);
+      }
+
+
+
+      if(codom.length > dom.length) exhaustiva = false;
+      for (int a : codom) { //Comprobamos que sea exhaustiva
+        if(!imagen2.contains(a)){
+          exhaustiva = false;
+        }
+      }
+
+      for (int i : dom) {//Comprobamos que sea inyectiva
+        for (int j : dom) {
+          if((f.apply(i).equals(f.apply(j))) && (i != j)){
+            inyectiva = false;
+          }
+        }
+      }
+
+      if(exhaustiva){
+        int contMax = 0, contI;
+        for(int i = 0; i < imagen1.length; i++) {
+          contI = 0;
+          for(int j = 0; j < imagen1.length; j++) {
+            if(imagen1[j] == imagen1[i]){
+              contI++;
+            }
+          }
+          if(contI > contMax) contMax = contI;
+        }
+        return contMax;
+      }
+
+      if(inyectiva){
+        return imagen2.size() - codom.length;
+      }
+
+      return 0;
     }
 
     /*
@@ -579,30 +621,111 @@ class Entrega {
      * Retornau l'ordre menys la mida del graf (no dirigit).
      */
     static int exercici1(int[][] g) {
-      return -1; // TO DO
+      int mida = 0;
+      for (int[] ints : g) {
+        mida += ints.length;
+      }
+
+      return g.length - (mida/2);
     }
 
+    /**
+     * Comprueba que un grafo sea bipartito utilizando la estrategia de asignar colores a los vértices
+     * @param g Grafo a comprobar
+     * @param inicio Vértice inicial
+     * @param colores Array que signa colores a los vértices
+     * @return Si el grafo es bipartido
+     */
+    static boolean esBipartito(int[][] g, int inicio, int[] colores) {
+      int n = g.length;
+      colores[inicio] = 1;  // Asignar color 1 al vértice inicial
+
+      int[] cola = new int[n];
+      int front = 0;
+      int rear = 0;
+      cola[rear++] = inicio;
+
+      while (front != rear) {
+        int v = cola[front++];
+
+        for (int vecino : g[v]) {
+          if (colores[vecino] == 0) {  // Si el vecino no tiene color asignado
+            colores[vecino] = -colores[v];  // Asignar el color opuesto al vértice actual
+            cola[rear++] = vecino;
+          } else if (colores[vecino] == colores[v]) {  // Si el vecino tiene el mismo color que el vértice actual
+            return false;  // El grafo no es bipartito
+          }
+        }
+      }
+
+      return true;
+    }
     /*
      * Suposau que el graf (no dirigit) és connex. És bipartit?
      */
     static boolean exercici2(int[][] g) {
-      return false; // TO DO
+      int[] colores = new int[g.length];
+      Arrays.fill(colores, 0);
+
+      for (int i = 0; i < g.length; i++) {
+        if (colores[i] == 0) {
+          if (!esBipartito(g, i, colores)) {
+            return false;
+          }
+        }
+      }
+      return true;
     }
 
+    /**
+     * Compruba si un descendiente tiene grado de salida igual a 0 y lo registra en el array correspondiente
+     * @param g Grafo DAG
+     * @param v Vértice a comprobar
+     * @param vistos Array con los vértices ya comprobados
+     * @param descendientesGradoSal0 Array con los vértices que tienen grado de salida igual a 0
+     */
+    static void recorrerArbol(int[][] g, int v, boolean[] vistos, int[] descendientesGradoSal0) {
+      vistos[v] = true;
+
+      for (int descendiente : g[v]) {
+        if (!vistos[descendiente]) { // Si el descendiente no ha sido visitado...
+          recorrerArbol(g, descendiente, vistos, descendientesGradoSal0); //Recursa la función con el nuevo vértice
+          descendientesGradoSal0[v] += (g[descendiente].length == 0 ? 1 : descendientesGradoSal0[descendiente]);
+        }
+      }
+    }
     /*
      * Suposau que el graf és un DAG. Retornau el nombre de descendents amb grau de sortida 0 del
      * vèrtex i-èssim.
      */
     static int exercici3(int[][] g, int i) {
-      return -1; // TO DO
+      int n = g.length;
+      boolean[] vistos = new boolean[n];
+      int[] gradoSalida0 = new int[n];
+
+      recorrerArbol(g, i, vistos, gradoSalida0);
+
+      return gradoSalida0[i];
     }
+
 
     /*
      * Donat un arbre arrelat (dirigit, suposau que l'arrel es el vèrtex 0), trobau-ne el diàmetre
      * del graf subjacent. Suposau que totes les arestes tenen pes 1.
      */
+    static int contarDiametro(int[][] g, int v){
+      int dia = 0;
+      if(g[v].length == 0){
+        return 1;
+      }
+
+      for(int i : g[v]){
+        dia += contarDiametro(g, i);
+      }
+      return dia;
+    }
     static int exercici4(int[][] g) {
-      return -1; // TO DO
+      return contarDiametro(g, 0);
     }
 
     /*
@@ -730,8 +853,50 @@ class Entrega {
      * Si la solució és x ≡ c (mod m), retornau `new int[] { c, m }`, amb 0 ⩽ c < m.
      * Si no en té, retornau null.
      */
+
+    /**
+     * Calcula el máximo común divisor dados 2 números
+     * @param a Primer número
+     * @param b Segundo número
+     * @return MCD de los argumentos
+     */
+    static int mcd(int a, int b){
+      int r0 = a, r1 = b, t;
+      while(r1 > 0){
+        t = r1;
+        r1 = r0 % r1;
+        r0 = t;
+      }
+      return r0;
+    }
+
+    static int[] euclides(int a, int b){
+      boolean negA, negB;
+      int r0 = a, r1 = b, t, x, y, q;
+      if(a < 0){
+        negA = true;
+        r0 *= -1;
+      }
+      if(b < 0){
+        negB = true;
+        r1 *= -1;
+      }
+
+      while(r1 > 0){
+        t = r1;
+        r1 = r0 % r1;
+        r0 = t;
+      }
+      return null;
+    }
     static int[] exercici1(int a, int b, int n) {
-      return null; // TO DO
+      if((b%mcd(a, n)) != 0){
+        return null;
+      }
+
+
+
+      return null;
     }
 
     /*
@@ -779,8 +944,25 @@ class Entrega {
      * No fa falta que cerqueu algorismes avançats de factorització, podeu utilitzar la força bruta
      * (el que coneixeu com el mètode manual d'anar provant).
      */
+
+    static ArrayList<Integer> factorizar(int n){
+      ArrayList<Integer> factores = new ArrayList<>();
+      int num;
+
+      for(int i = 2; i < n; i++){
+        num = n;
+        if(n%i == 0){
+          while(num%i == 0){
+            num %= i;
+            factores.add(i);
+          }
+        }
+      }
+      return factores;
+    }
     static ArrayList<Integer> exercici3a(int n) {
-      return new ArrayList<>(); // TO DO
+
+      return factorizar(n);
     }
 
     /*
@@ -864,9 +1046,9 @@ class Entrega {
    */
   public static void main(String[] args) {
     //Tema1.tests();
-    Tema2.tests();
+    //Tema2.tests();
     //Tema3.tests();
-    //Tema4.tests();
+    Tema4.tests();
 
   }
 
