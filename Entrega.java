@@ -862,6 +862,7 @@ class Entrega {
      */
     static int mcd(int a, int b){
       int r0 = a, r1 = b, t;
+      if(b<0) r1*= -1;
       while(r1 > 0){
         t = r1;
         r1 = r0 % r1;
@@ -870,33 +871,64 @@ class Entrega {
       return r0;
     }
 
-    static int[] euclides(int a, int b){
-      boolean negA, negB;
-      int r0 = a, r1 = b, t, x, y, q;
+    /**
+     * Calcula los coeficientes que satisfacen la ecuación ax + by = c
+     * @param n Coeficiente de x
+     * @param a Coeficiente de y
+     * @return Un array que contiene los valores de la solución
+     */
+    static int[] euclides(int n, int a){
+      boolean negA = false;
+      int r0 = n, r1 = a, t;
+      int x0 = 1, y0 = 0, q;
+      int x1 = 0, y1 = 1, auxX, auxY;
+
       if(a < 0){
         negA = true;
-        r0 *= -1;
-      }
-      if(b < 0){
-        negB = true;
         r1 *= -1;
       }
 
       while(r1 > 0){
         t = r1;
         r1 = r0 % r1;
+        if(r1 <= 0){
+          break;
+        }
+        q = r0/t;
         r0 = t;
+
+        auxX = x1;
+        auxY = y1;
+
+        x1 = x0 - q*x1;
+        y1 = y0 - q*y1;
+
+        x0 = auxX;
+        y0 = auxY;
       }
-      return null;
+
+      if(negA) y1 *= -1;
+
+      return new int[]{x1, y1};
     }
     static int[] exercici1(int a, int b, int n) {
-      if((b%mcd(a, n)) != 0){
+      int d = mcd(n, a);
+
+      if((b%d) != 0){
         return null;
       }
 
+      int[] sol = euclides(n, a);
+      int c = sol[1];
+      int k = n/d;
 
+      if(k < 0) k *= -1;
 
-      return null;
+      while(c < 0){
+        c += k;
+      }
+
+      return new int[]{c, k};
     }
 
     /*
@@ -914,7 +946,28 @@ class Entrega {
      * Si no en té, retornau null.
      */
     static int[] exercici2a(int[] b, int[] n) {
-      return null; // TO DO
+      int[] P = new int[n.length];
+      Arrays.fill(P, 1);
+      int[] Q = new int[n.length];
+      int c = 0, m = 1;
+
+      for (int i = 0; i < n.length; i++) {
+        for (int j = 0; j < n.length; j++) {
+          if(i == j) continue;
+          if(mcd(n[i], n[j]) != 1) return null;
+
+          P[i] *= n[j];
+
+        }
+        Q[i] = euclides(n[i], P[i]%n[i])[1];
+        c += P[i]*Q[i]*b[i];
+        m *= n[i];
+      }
+
+      while(c < 0){
+        c += m;
+      }
+      return new int[]{c, m};
     }
 
     /*
@@ -932,7 +985,18 @@ class Entrega {
      * Si no en té, retornau null.
      */
     static int[] exercici2b(int[] a, int[] b, int[] n) {
-      return null; // TO DO
+
+      int[] b1 = new int[b.length];
+      int[] n1 = new int[n.length];
+      int[] sol;
+
+      for(int i = 0; i < a.length; i++){
+        sol = exercici1(a[i], b[i], n[i]);
+        if(sol == null) return null;
+        b1[i] = sol[0];
+        n1[i] = sol[1];
+      }
+      return exercici2a(b1, n1);
     }
 
     /*
@@ -947,21 +1011,17 @@ class Entrega {
 
     static ArrayList<Integer> factorizar(int n){
       ArrayList<Integer> factores = new ArrayList<>();
-      int num;
+      int num = n;
 
-      for(int i = 2; i < n; i++){
-        num = n;
-        if(n%i == 0){
-          while(num%i == 0){
-            num %= i;
-            factores.add(i);
-          }
+      for(int i = 2; i <= n; i++){
+        while(num%i == 0){
+          num /= i;
+          factores.add(i);
         }
       }
       return factores;
     }
     static ArrayList<Integer> exercici3a(int n) {
-
       return factorizar(n);
     }
 
@@ -973,8 +1033,19 @@ class Entrega {
      *
      * No podeu utilitzar `long` per solucionar aquest problema. Necessitareu l'exercici 3a.
      */
+
+
     static int exercici3b(int n) {
-      return -1; // TO DO
+
+      int invertibles = 1;
+      ArrayList<Integer> factores = factorizar(n);
+      int[] contador =
+
+      for (Integer factor : factores) {
+          invertibles *= (factor*factor*factor) - factor*factor;
+      }
+
+      return invertibles;
     }
 
     /*
