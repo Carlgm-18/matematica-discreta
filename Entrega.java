@@ -1034,15 +1034,34 @@ class Entrega {
      * No podeu utilitzar `long` per solucionar aquest problema. Necessitareu l'exercici 3a.
      */
 
+      static int pow(int a, int x){
+        int aux = 1;
+
+        for (int i = 0; i < x; i++) {
+          aux *= a;
+        }
+
+        return aux;
+      }
 
     static int exercici3b(int n) {
 
       int invertibles = 1;
       ArrayList<Integer> factores = factorizar(n);
-      int[] contador =
+      List<Integer> unicos = new ArrayList<>(new HashSet<>(factores));
+      int[] cont = new int[unicos.size()];
+      Arrays.fill(cont, 0);
 
-      for (Integer factor : factores) {
-          invertibles *= (factor*factor*factor) - factor*factor;
+      for(Integer factor : factores){
+        cont[unicos.indexOf(factor)] += 1;
+      }
+
+      for (int i = 0; i < cont.length; i++) {
+        cont[i] *= 3;
+      }
+
+      for (int i = 0; i<unicos.size(); i++) {
+          invertibles *= pow(unicos.get(i), cont[i]) - pow(unicos.get(i), cont[i] - 1);
       }
 
       return invertibles;
@@ -1125,8 +1144,7 @@ class Entrega {
 
   /// Si b és cert, no fa res. Si b és fals, llança una excepció (AssertionError).
   static void assertThat(boolean b) {
-    //if (!b)
-      //throw new AssertionError();
-    System.out.println(b);
+    if (!b)
+      throw new AssertionError();
   }
 }
