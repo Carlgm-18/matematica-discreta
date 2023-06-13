@@ -969,6 +969,23 @@ class Entrega {
       }
       return new int[]{c, m};
     }
+    static int[] transform(int a, int b, int n) {
+      int d = mcd(n, a);
+
+      if((b%d) != 0){
+        return null;
+      }
+
+      int[] sol = euclides(n, a);
+      int c = sol[1];
+      int k = n/d;
+
+      if(k < 0) k *= -1;
+
+      c *= b/d;
+
+      return new int[]{c, k};
+    }
 
     /*
      * Donau la solució (totes) del sistema d'equacions
@@ -991,7 +1008,7 @@ class Entrega {
       int[] sol;
 
       for(int i = 0; i < a.length; i++){
-        sol = exercici1(a[i], b[i], n[i]);
+        sol = transform(a[i], b[i], n[i]);
         if(sol == null) return null;
         b1[i] = sol[0];
         n1[i] = sol[1];
@@ -1135,9 +1152,9 @@ class Entrega {
    * Podeu aprofitar el mètode `assertThat` per comprovar fàcilment que un valor sigui `true`.
    */
   public static void main(String[] args) {
-    //Tema1.tests();
-    //Tema2.tests();
-    //Tema3.tests();
+    Tema1.tests();
+    Tema2.tests();
+    Tema3.tests();
     Tema4.tests();
 
   }
